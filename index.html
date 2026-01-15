@@ -48,22 +48,19 @@
 
 <div class="result" id="result"></div>
 
+<!-- Tabletop.js to fetch live Google Sheets -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.6.0/tabletop.min.js"></script>
 <script>
-  // ✅ Use your published CSV URL
-  const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8/pub?output=csv";
+  const publicSpreadsheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8/pubhtml";
 
-  fetch(sheetURL)
-    .then(response => response.text())
-    .then(csv => {
-      // Split lines, remove empty rows, skip header
-      const lines = csv.split("\n").slice(1).filter(line => line.trim() !== "");
-      const rows = lines.map(line => {
-        const [name, table] = line.split(",");
-        return {
-          name: name?.toLowerCase().trim(),
-          table: table?.trim()
-        };
-      });
+  Tabletop.init({
+    key: publicSpreadsheetUrl,
+    simpleSheet: true,
+    callback: function(data, tabletop) {
+      const rows = data.map(row => ({
+        name: row.Name?.toLowerCase().trim(),
+        table: row.Table?.trim()
+      }));
 
       const input = document.getElementById("searchInput");
       const result = document.getElementById("result");
@@ -90,13 +87,9 @@
         }, 250); // 250ms debounce
       });
 
-      input.focus(); // Optional: auto-focus input
-    })
-    .catch(err => {
-      document.getElementById("result").innerHTML =
-        "Unable to load seating list. Please see staff for help.";
-      console.error(err);
-    });
+      input.focus();
+    }
+  });
 </script>
 
 </body>
