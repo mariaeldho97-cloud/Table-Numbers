@@ -34,25 +34,17 @@ input {
 <div class="result" id="result"></div>
 
 <script>
-  // Your Google Sheet ID (from the URL)
-  const sheetID = "2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8";
-
-  // Google Visualization API feed URL
-  const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+  // Your GitHub-hosted CSV
+  const sheetURL = "https://raw.githubusercontent.com/mariaeldho97-cloud/Table-Numbers/refs/heads/main/Seating%20chart%20-%20Sheet1%20(2).csv";
 
   fetch(sheetURL)
     .then(res => res.text())
-    .then(dataText => {
-      // The feed is wrapped in a function call, we strip it to get JSON
-      const json = JSON.parse(dataText.replace(/^.*?\(/, '').replace(/\);$/, ''));
-
-      // Extract rows
-      const rows = json.table.rows.map(r => ({
-        name: r.c[0]?.v?.toLowerCase().trim(),
-        table: r.c[1]?.v?.trim()
-      }));
-
-      console.log("Loaded rows:", rows); // Debug: check data
+    .then(csv => {
+      const lines = csv.split("\n").slice(1).filter(line => line.trim() !== "");
+      const rows = lines.map(line => {
+        const [name, table] = line.split(",");
+        return { name: name?.toLowerCase().trim(), table: table?.trim() };
+      });
 
       const input = document.getElementById("searchInput");
       const result = document.getElementById("result");
