@@ -1,67 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Find Your Seat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fafafa;
-      text-align: center;
-      padding: 40px 20px;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    p {
-      color: #555;
-    }
-    input {
-      padding: 14px;
-      width: 100%;
-      max-width: 400px;
-      font-size: 18px;
-      margin-top: 20px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    .result {
-      font-size: 22px;
-      margin-top: 25px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Find Your Seat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #fafafa;
+  text-align: center;
+  padding: 40px 20px;
+}
+h1 { margin-bottom: 10px; }
+p { color: #555; }
+input {
+  padding: 14px;
+  width: 100%;
+  max-width: 400px;
+  font-size: 18px;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.result { font-size: 22px; margin-top: 25px; }
+</style>
 </head>
-
 <body>
 
 <h1>Find Your Seat</h1>
 <p>Type your name below</p>
 
-<input
-  type="text"
-  id="searchInput"
-  placeholder="e.g. Maria"
-  autocomplete="off"
-/>
-
+<input type="text" id="searchInput" placeholder="e.g. Maria" autocomplete="off" />
 <div class="result" id="result"></div>
 
-<!-- Tabletop.js to fetch live Google Sheets -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.6.0/tabletop.min.js"></script>
 <script>
-  // Use your published Google Sheet (pubhtml)
-  const publicSpreadsheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8/pubhtml";
+  // Your Google Sheet ID (from the URL)
+  const sheetID = "2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8";
 
-  Tabletop.init({
-    key: publicSpreadsheetUrl,
-    simpleSheet: true,
-    callback: function(data) {
-      // Map sheet rows to lowercase names for matching
-      const rows = data.map(row => ({
-        name: row.Name?.toLowerCase().trim(),
-        table: row.Table?.trim()
+  // Google Visualization API feed URL
+  const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+
+  fetch(sheetURL)
+    .then(res => res.text())
+    .then(dataText => {
+      // The feed is wrapped in a function call, we strip it to get JSON
+      const json = JSON.parse(dataText.replace(/^.*?\(/, '').replace(/\);$/, ''));
+
+      // Extract rows
+      const rows = json.table.rows.map(r => ({
+        name: r.c[0]?.v?.toLowerCase().trim(),
+        table: r.c[1]?.v?.trim()
       }));
 
       console.log("Loaded rows:", rows); // Debug: check data
@@ -74,13 +62,10 @@
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
           const value = input.value.toLowerCase().trim();
+          if (!value) { result.innerHTML = ""; return; }
 
-          if (!value) {
-            result.innerHTML = "";
-            return;
-          }
-
-          const matches = rows.filter(r => r.name.startsWith(value));
+          // Match anywhere in the name
+          const matches = rows.filter(r => r.name && r.name.includes(value));
 
           if (matches.length) {
             result.innerHTML = "✨ You are seated at:<br>" +
@@ -88,14 +73,15 @@
           } else {
             result.innerHTML = "No match yet — please check spelling";
           }
-        }, 250); // Debounce 250ms
+        }, 250); // debounce
       });
 
-      input.focus(); // Auto-focus input field
-    },
-    simpleSheet: true,
-    debug: true // Optional: log extra info for troubleshooting
-  });
+      input.focus();
+    })
+    .catch(err => {
+      document.getElementById("result").innerHTML = "Unable to load seating list. Please see staff for help.";
+      console.error(err);
+    });
 </script>
 
 </body>
