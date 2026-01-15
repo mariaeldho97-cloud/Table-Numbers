@@ -51,16 +51,20 @@
 <!-- Tabletop.js to fetch live Google Sheets -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.6.0/tabletop.min.js"></script>
 <script>
+  // Use your published Google Sheet (pubhtml)
   const publicSpreadsheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8/pubhtml";
 
   Tabletop.init({
     key: publicSpreadsheetUrl,
     simpleSheet: true,
-    callback: function(data, tabletop) {
+    callback: function(data) {
+      // Map sheet rows to lowercase names for matching
       const rows = data.map(row => ({
         name: row.Name?.toLowerCase().trim(),
         table: row.Table?.trim()
       }));
+
+      console.log("Loaded rows:", rows); // Debug: check data
 
       const input = document.getElementById("searchInput");
       const result = document.getElementById("result");
@@ -84,11 +88,13 @@
           } else {
             result.innerHTML = "No match yet — please check spelling";
           }
-        }, 250); // 250ms debounce
+        }, 250); // Debounce 250ms
       });
 
-      input.focus();
-    }
+      input.focus(); // Auto-focus input field
+    },
+    simpleSheet: true,
+    debug: true // Optional: log extra info for troubleshooting
   });
 </script>
 
