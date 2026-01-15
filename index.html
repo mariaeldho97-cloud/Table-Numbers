@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Find Your Seat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    p {
+      color: #555;
+    }
+    input {
+      padding: 14px;
+      width: 100%;
+      max-width: 400px;
+      font-size: 18px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .result {
+      font-size: 22px;
+      margin-top: 25px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Find Your Seat</h1>
+<p>Type your name below</p>
+
+<input
+  type="text"
+  id="searchInput"
+  placeholder="e.g. Maria"
+  autocomplete="off"
+/>
+
+<div class="result" id="result"></div>
+
+<script>
+  const sheetID = "1tnahNX2ORG61zDElp32dwQsnI6QouwKTh5yDAy9NuqA";
+  const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/pub?output=csv`;
+
+  fetch(sheetURL)
+    .then(response => response.text())
+    .then(csv => {
+      const lines = csv.split("\n").slice(1).filter(line => line.trim() !== "");
+      const rows = lines.map(line => {
+        const [name, table] = line.split(",");
+        return {
+          name: name?.toLowerCase().trim(),
+          table: table?.trim()
+        };
+      });
+
+      const input = document.getElementById("searchInput");
+      const result = document.getElementById("result");
+
+      let debounceTimeout;
+      input.addEventListener("input", () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          const value = input.value.toLowerCase().trim();
+
+          if (!value) {
+            result.innerHTML = "";
+            return;
+          }
+
+          const matches = rows.filter(r => r.name.startsWith(value));
+
+          if (matches.length) {
+            result.innerHTML = "✨ You are seated at:<br>" +
+              matches.map(m => `<strong>Table ${m.table}</strong>`).join("<br>");
+          } else {
+            result.innerHTML = "No match yet — please check spelling";
+          }
+        }, 250); // 250ms debounce
+      });
+
+      input.focus(); // Optional: auto-focus the input on page load
+    })
+    .catch(err => {
+      document.getElementById("result").innerHTML =
+        "Unable to load seating list. Please see staff for help.";
+      console.error(err);
+    });
+</script>
+
+</body>
+</html>
