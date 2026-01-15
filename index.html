@@ -49,12 +49,13 @@
 <div class="result" id="result"></div>
 
 <script>
-  const sheetID = "1tnahNX2ORG61zDElp32dwQsnI6QouwKTh5yDAy9NuqA";
-  const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/pub?output=csv`;
+  // ✅ Use your published CSV URL
+  const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXlxYVedL786zVmjD-slSKfgwqK95YYp2J90_NF6mPzFpVd7PSyr5NMZbbG8fhwAxJf5N31jMcGAp8/pub?output=csv";
 
   fetch(sheetURL)
     .then(response => response.text())
     .then(csv => {
+      // Split lines, remove empty rows, skip header
       const lines = csv.split("\n").slice(1).filter(line => line.trim() !== "");
       const rows = lines.map(line => {
         const [name, table] = line.split(",");
@@ -89,7 +90,7 @@
         }, 250); // 250ms debounce
       });
 
-      input.focus(); // Optional: auto-focus the input on page load
+      input.focus(); // Optional: auto-focus input
     })
     .catch(err => {
       document.getElementById("result").innerHTML =
