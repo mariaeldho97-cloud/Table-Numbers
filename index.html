@@ -35,11 +35,12 @@ input {
 
 <script>
   // Correct GitHub raw CSV URL
-  const sheetURL = "https://raw.githubusercontent.com/mariaeldho97-cloud/Table-Numbers/main/Seating%20chart%20-%20Sheet1%20(2).csv";
+  const sheetURL = "https://raw.githubusercontent.com/mariaeldho97-cloud/Table-Numbers/main/seating.csv";
 
   fetch(sheetURL)
     .then(res => res.text())
     .then(csv => {
+      // Split into lines, skip header, remove empty lines
       const lines = csv.split("\n").slice(1).filter(line => line.trim() !== "");
       const rows = lines.map(line => {
         const [name, table] = line.split(",");
